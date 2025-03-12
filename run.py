@@ -27,8 +27,8 @@ def main():
         return
     
     # Load the data from the specified path
-    data, grouped_data = load_data('bin/data/stock_data.csv')  # Ensure this path is correct
-    plot_historical_performance_per_stock(grouped_data)  # Plot the historical performance
+    data = load_data('bin/data/stock_data.csv')  # Ensure this path is correct
+    plot_historical_performance_per_stock(data)  # Plot the historical performance
     print("\n=== Pipeline completed successfully ===")
 
 if __name__ == "__main__":

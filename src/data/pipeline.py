@@ -50,27 +50,22 @@ def setup_kaggle_auth():
         print("✓ Using stored Kaggle credentials")
         return True
 
-    try:
-        # Try to authenticate with kagglehub
-        kagglehub.login()
-        print("✓ Kaggle authentication successful")
-        
-        # Store credentials if available
-        username = os.environ.get('KAGGLE_USERNAME')
-        api_key = os.environ.get('KAGGLE_KEY')
-        
-        if username and api_key:
-            if 'kaggle' not in config:
-                config['kaggle'] = {}
-            config['kaggle']['username'] = username
-            config['kaggle']['api_key'] = api_key
-            save_config(config)
-            print("✓ Credentials saved to config file")
-        
-        return True
-    except Exception as e:
-        print(f"Error during Kaggle authentication: {e}")
-        return False
+    # Prompt user for credentials if not found
+    print("Kaggle credentials not found. Please enter your credentials.")
+    username = input("Enter your Kaggle username: ")
+    api_key = input("Enter your Kaggle API key: ")
+
+    # Store credentials in the config
+    config['kaggle']['username'] = username
+    config['kaggle']['api_key'] = api_key
+    save_config(config)
+
+    # Set environment variables
+    os.environ['KAGGLE_USERNAME'] = username
+    os.environ['KAGGLE_KEY'] = api_key
+
+    print("✓ Kaggle credentials saved. Ensure Proper setup in ~/config")
+    return True
 
 def download_and_save_dataset(dataset_id, file_name):
     """Download dataset and save to configured location"""
@@ -161,7 +156,7 @@ def main():
         print("Failed to download and save dataset. Exiting.")
         return
     
-    data = load_data('data/stock_data.csv')
+    data = load_data('bin/data/stock_data.csv')
     plot_historical_performance_per_stock(data)                
     print("\n=== Pipeline completed successfully ===")
 
