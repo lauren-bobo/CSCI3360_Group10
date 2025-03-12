@@ -110,10 +110,10 @@ def download_and_save_dataset(dataset_id, file_name):
         return False
 
 def load_data(file):
-    #load data 
     data = pd.read_csv(file)
     data = pd.DataFrame(data)
     data['Date'] = pd.to_datetime(data['Date'])
+    print("Data loaded:", data.head())  # Print the first few rows of the data
     return data
 
 
@@ -161,7 +161,7 @@ def main():
         print("Failed to download and save dataset. Exiting.")
         return
     
-    data = load_data('bin/data/stock_data.csv')
+    data = load_data('data/stock_data.csv')
     plot_historical_performance_per_stock(data)                
     print("\n=== Pipeline completed successfully ===")
 
