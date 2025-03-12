@@ -3,6 +3,8 @@ import kagglehub
 from pathlib import Path
 import pandas as pd
 import json
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Configuration file in project root
 CONFIG_FILE = "config.json"
@@ -17,8 +19,8 @@ def load_config():
     default_config = {
         "kaggle": {},
         "paths": {
-            "data_dir": "data",
-            "output_file": "data/stock_data.csv"
+            "data_dir": "bin/data",
+            "output_file": "bin/data/stock_data.csv"
         },
         "dataset": {
             "id": "nelgiriyewithana/world-stock-prices-daily-updating",
@@ -93,7 +95,7 @@ def download_and_save_dataset(dataset_id, file_name):
         try:
             df = pd.read_csv(Path(download_path) / file_name)
             
-            # Save to the configured output location
+            print(f"Saving dataset to: {output_file}")  # Debugging line
             df.to_csv(output_file, index=False)
             print(f"✓ Dataset processed and saved to: {output_file}")
         except FileNotFoundError:
@@ -107,6 +109,42 @@ def download_and_save_dataset(dataset_id, file_name):
         print(f"Exception details: {type(e).__name__}: {str(e)}")
         return False
 
+def load_data(file):
+    #load data 
+    data = pd.read_csv(file)
+    data = pd.DataFrame(data)
+    data['Date'] = pd.to_datetime(data['Date'])
+    return data
+
+
+def plot_historical_performance_per_stock(grouped_data):
+    """Plot historical performance of each stock's open and close prices in subplots."""
+    # Create a directory for saving figures if it doesn't exist
+    output_dir = Path("bin/data/figs")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Set the number of subplots
+    num_stocks = len(grouped_data['Ticker'].unique())
+    fig, axes = plt.subplots(nrows=num_stocks, ncols=1, figsize=(12, 6 * num_stocks), sharex=True)
+
+    for ax, ticker in zip(axes, grouped_data['Ticker'].unique()):
+        stock_data = grouped_data[grouped_data['Ticker'] == ticker]
+        
+        ax.plot(stock_data['Date'], stock_data['Open'], label='Open Price', color='blue')
+        ax.plot(stock_data['Date'], stock_data['Close'], label='Close Price', color='orange')
+        
+        ax.set_title(f'Historical Performance of {ticker}')
+        ax.set_ylabel('Price')
+        ax.legend()
+        ax.tick_params(axis='x', rotation=45)
+
+    plt.xlabel('Date')
+    plt.tight_layout()
+    
+    # Save the figure
+    plt.savefig(output_dir / 'historical_stock_performance.png')
+    plt.close()
+
 def main():
     """Main function to run the data pipeline."""
     print("=== Stock Market Data Pipeline ===")
@@ -118,11 +156,13 @@ def main():
     
     print("\n[2/2] Downloading and saving dataset...")
     dataset_id = "nelgiriyewithana/world-stock-prices-daily-updating"
-    file_name = "your_dataset_file.csv"  # Replace with the actual file name
+    file_name = "World-Stock-Prices-Dataset.csv"  # Replace with the actual file name
     if not download_and_save_dataset(dataset_id, file_name):
         print("Failed to download and save dataset. Exiting.")
         return
     
+    data = load_data('bin/data/stock_data.csv')
+    plot_historical_performance_per_stock(data)                
     print("\n=== Pipeline completed successfully ===")
 
 if __name__ == "__main__":
