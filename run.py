@@ -1,76 +1,57 @@
-from pathlib import Path
 import os
-import json
-import kagglehub
+import sys
+from pathlib import Path
 
-def setup_kaggle():
-    """Set up Kaggle token file"""
-    kaggle_json = Path.home() / '.kaggle' / 'kaggle.json'
-    
-    if kaggle_json.exists():
-        print("✓ Kaggle token file already exists")
-        return True
+# Set the PYTHONPYCACHEPREFIX to redirect __pycache__ to bin/pycache
+os.environ['PYTHONPYCACHEPREFIX'] = str(Path(__file__).parent / 'bin' / 'pycache')
 
-    print("\nNo Kaggle token file found. Please follow these steps:")
-    print("1. Go to https://www.kaggle.com/account")
-    print("2. Scroll to API section and click 'Create New API Token'")
-    print("3. Download the kaggle.json file")
-    print("4. Enter the path to your downloaded kaggle.json file:")
-    
-    try:
-        token_path = input("Path to kaggle.json: ").strip()
-        token_path = Path(token_path).expanduser()
-        
-        if not token_path.exists():
-            print(f"Error: File not found at {token_path}")
-            return False
-            
-        # Create .kaggle directory if it doesn't exist
-        kaggle_json.parent.mkdir(exist_ok=True)
-        
-        # Copy the token file
-        with open(token_path, 'r') as source:
-            credentials = json.load(source)
-        with open(kaggle_json, 'w') as target:
-            json.dump(credentials, target)
-            
-        os.chmod(kaggle_json, 0o600)
-        return True
-    except Exception as e:
-        print(f"Error setting up Kaggle token: {e}")
-        return False
+# Add src directory to path so we can import from it
+sys.path.append(str(Path(__file__).parent))
 
-def download_dataset():
-    """Download the dataset"""
-    data_dir = Path("data")
-    dataset_id = "nelgiriyewithana/world-stock-prices-daily-updating"
-    
-    try:
-        data_dir.mkdir(exist_ok=True)
-        downloaded_path = kagglehub.dataset_download(
-            dataset_id,
-            path=str(data_dir),
-            force_download=True
-        )
-        os.environ['STOCK_DATA_PATH'] = str(data_dir)
-        print(f"✓ Dataset downloaded to: {data_dir}")
-        return True
-    except Exception as e:
-        print(f"Error downloading dataset: {e}")
-        return False
+from src.data.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config
 
 def main():
-    """Main function"""
+    """Main function to run the data pipeline."""
     print("=== Stock Market Data Pipeline ===")
     
+    # Load configuration
+    config = load_config()
+    
     print("\n[1/2] Setting up Kaggle authentication...")
-    if not setup_kaggle():
+    if not setup_kaggle_auth():
         print("Failed to set up Kaggle authentication. Exiting.")
         return
     
-    print("\n[2/2] Downloading dataset...")
-    if not download_dataset():
-        print("Failed to download dataset. Exiting.")
+    print("\n[2/2] Downloading and saving dataset...")
+    dataset_id = "nelgiriyewithana/world-stock-prices-daily-updating"
+    
+    # Try to find the correct file name
+    try:
+        import kagglehub
+        import os
+        
+        # Download dataset metadata to check available files
+        temp_path = kagglehub.dataset_download(
+            dataset_id,
+            force_download=False
+        )
+        
+        # List available files
+        files = os.listdir(temp_path)
+        csv_files = [f for f in files if f.endswith('.csv')]
+        
+        if csv_files:
+            file_name = csv_files[0]  # Use the first CSV file
+            print(f"Found dataset file: {file_name}")
+        else:
+            file_name = "stock_prices.csv"  # Default fallback
+            print(f"No CSV files found, using default name: {file_name}")
+    except Exception:
+        file_name = "stock_prices.csv"  # Default fallback
+        print(f"Using default file name: {file_name}")
+    
+    if not download_and_save_dataset(dataset_id, file_name):
+        print("Failed to download and save dataset. Exiting.")
         return
     
     print("\n=== Pipeline completed successfully ===")

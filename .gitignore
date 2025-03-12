@@ -1,4 +1,41 @@
-__pycache__/
-```
+# Configuration
+config.json
 
-</rewritten_file>
+# Downloaded data
+data/
+src/data/data.csv
+src/data/stock_prices.csv
+src/data/world-stock-prices-daily-updating/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo

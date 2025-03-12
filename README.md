@@ -5,29 +5,33 @@ A simple pipeline for downloading and processing stock market data from Kaggle.
 ## Setup
 
 1. Clone this repository
-2. Make the pipeline script executable:
+2. Install required packages:
    ```
-   chmod +x run_pipeline.sh
+   pip install kagglehub pandas
    ```
 
 ## Usage
 
+### Windows
 Run the pipeline with:
-
 ```
-from pathlib import Path
+python src/data/pipeline.py
+```
 
-# Get the project root directory
-project_root = Path(__file__).parent.parent.parent
-data_dir = project_root / "data" / "stock_data"
+### Linux/Mac
+Make the script executable and run:
+```
+chmod +x run_pipeline.sh
+./run_pipeline.sh
+```
 
-# Create directory if it doesn't exist
-data_dir.mkdir(parents=True, exist_ok=True)
+## Authentication
 
-# Download the dataset
-dataset_id = "nelgiriyewithana/world-stock-prices-daily-updating"
-downloaded_path = kagglehub.dataset_download(
-    dataset_id,
-    path=str(data_dir),
-    force_download=True
-)
+On first run, you'll need to authenticate with Kaggle:
+
+1. Create a Kaggle account if you don't have one: [kaggle.com/account/login](https://www.kaggle.com/account/login)
+2. Go to your Kaggle account settings: [kaggle.com/account](https://www.kaggle.com/account)
+3. Scroll to the API section and click "Create New API Token"
+4. When prompted by the pipeline, enter your Kaggle username and API key
+
+Your credentials will be saved for future use.
