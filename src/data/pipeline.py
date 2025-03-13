@@ -3,8 +3,8 @@ import kagglehub
 from pathlib import Path
 import pandas as pd
 import json
-import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 # Configuration file in project root
 CONFIG_FILE = "config.json"
@@ -107,38 +107,53 @@ def download_and_save_dataset(dataset_id, file_name):
 def load_data(file):
     data = pd.read_csv(file)
     data = pd.DataFrame(data)
-    data['Date'] = pd.to_datetime(data['Date'])
+    data['Date'] = pd.to_datetime(data['Date'], utc=True)
+
+    # Print the columns to check for 'Stock'
     print("Data loaded:", data.head())  # Print the first few rows of the data
+    print("Columns in DataFrame:", data.columns)  # Print the columns to check for 'Stock'
+
+    # Strip whitespace from column names
+    data.columns = data.columns.str.strip()
+
+
     return data
 
-
-def plot_historical_performance_per_stock(grouped_data):
-    """Plot historical performance of each stock's open and close prices in subplots."""
-    # Create a directory for saving figures if it doesn't exist
-    output_dir = Path("bin/data/figs")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Set the number of subplots
-    num_stocks = len(grouped_data['Ticker'].unique())
-    fig, axes = plt.subplots(nrows=num_stocks, ncols=1, figsize=(12, 6 * num_stocks), sharex=True)
-
-    for ax, ticker in zip(axes, grouped_data['Ticker'].unique()):
-        stock_data = grouped_data[grouped_data['Ticker'] == ticker]
-        
-        ax.plot(stock_data['Date'], stock_data['Open'], label='Open Price', color='blue')
-        ax.plot(stock_data['Date'], stock_data['Close'], label='Close Price', color='orange')
-        
-        ax.set_title(f'Historical Performance of {ticker}')
-        ax.set_ylabel('Price')
-        ax.legend()
-        ax.tick_params(axis='x', rotation=45)
-
-    plt.xlabel('Date')
-    plt.tight_layout()
+def replace_Industry_Tag_with_sector(data):
+    industry_tag = data['Industry_Tag'].unique()
+    print("Unique Industry Tags:", industry_tag)
+    # Replace 'Industry_Tag' with 'Sector'
     
-    # Save the figure
-    plt.savefig(output_dir / 'historical_stock_performance.png')
-    plt.close()
+
+def prepare_data(data):
+    """Prepare the data for LSTM model with multiple stocks."""
+    # Convert 'Date' to datetime
+    data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)  # Convert to datetime and localize to UTC
+
+    # Check for any NaT values after conversion
+    if data['Date'].isnull().any():
+        print("Warning: Some dates could not be converted and are NaT.")
+        print(data[data['Date'].isnull()])  # Print rows with NaT values
+
+    data.set_index('Date', inplace=True)
+
+    # Group by Ticker instead of Stock
+    grouped = data.groupby('Ticker')
+
+    X, y, scalers = [], [], {}
+    
+    for ticker, group in grouped:
+        # Scale the data for each ticker
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        scaled_data = scaler.fit_transform(group[['Close']])
+        scalers[ticker] = scaler  # Store the scaler for inverse transformation
+
+        # Create sequences
+        for i in range(60, len(scaled_data)):
+            X.append(scaled_data[i-60:i, 0])  # Previous 60 days
+            y.append(scaled_data[i, 0])       # Current day
+
+    return np.array(X), np.array(y), scalers
 
 def main():
     """Main function to run the data pipeline."""
@@ -157,7 +172,7 @@ def main():
         return
     
     data = load_data('bin/data/stock_data.csv')
-    plot_historical_performance_per_stock(data)                
+                
     print("\n=== Pipeline completed successfully ===")
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
 1. Clone this repository
 2. Install required packages:
    ```
-   pip install kagglehub pandas seaborn
+   pip install kagglehub pandas seaborn tensorflow
    ```
    you may have to do several updates
 
