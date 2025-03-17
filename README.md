@@ -1,35 +1,26 @@
 # Stock Market Prediction 
-
+#Info 
+Description: This repository contains a means to connecting 
 
 ## Setup
+**requires** 
+1.Kaggle username 
+2. Kagglehub API Token (Settings> API:Create New Token, then locate the token number in your json file):
 
-1. Clone this repository
+# Explanation: 
+## Authentication
+1. On first launch, the console will prompt Clone this repository
 2. Install required packages:
    ```
    pip install kagglehub pandas seaborn tensorflow
    ```
-   you may have to do several updates
-
-#Info 
-Due to torage limits and the need for API authentication, several files will not be shared on this repository,
-including the data which is automatically obtained by the code and all compiled code/figs
-See the .gitignore for untracked packages. 
+   you may have to do several updates of kagglehub if its insatalled through pip. 
 
 
-## Obtaining Kaggle API Key
+ Run <pyton run> in your console. This will automaticaally create {File ./config.json}, which 
 
-To run the pipeline, each user needs to obtain their own Kaggle API key:
-
-1. Create a Kaggle account if you don't have one: [kaggle.com/account/login](https://www.kaggle.com/account/login)
-2. Go to your Kaggle account settings: [kaggle.com/account](https://www.kaggle.com/account)
-3. Scroll to the API section and click "Create New API Token"
-4. This will download a file named `kaggle.json`. Move this file to the `~/.kaggle/` directory (create the directory if it doesn't exist).
-5. Ensure the file has the correct permissions:
-   ```
-   chmod 600 ~/.kaggle/kaggle.json
-   ```
-
-## Usage
+## Usage: From Main working directory (Git clone/repository Main File)
+1.     Run <./ pyton run> in your console. This will automaticaally create {File ./config.json}, an untracked file, which will enter these credentials in the future. (WORK IN PROGRESS: This will also be used to update the data each time the model is run if we don't struggle to train on). 
 
 ### Windows
 Run the pipeline by typing:

@@ -5,17 +5,18 @@ from sklearn.model_selection import train_test_split
 # Set the PYTHONPYCACHEPREFIX to redirect __pycache__ to bin/pycache
 os.environ['PYTHONPYCACHEPREFIX'] = str(Path(__file__).parent / 'bin' / 'pycache')
 
-# Add src directory to path so we can import from it
+# Add src directory to path so we can import from itls -
 sys.path.append(str(Path(__file__).parent))
 
-from src.data.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
-from src.data.analysis import plot_historical_performance_per_stock
-from src.model.train_lstm import main as train_lstm_main  # Import the main function from train_lstm
+from src.data.API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
+from src.data.analysis import chart_all
+from src.model.train_lstm import main as train_lstm_main  # Import the main function from train_lstm to run model training
 
 def main():
     """Main function to run the data pipeline."""
-    print("=== Stock Market Data Pipeline ===")
     
+    print("Welcome To The stock prediction model:")
+    print
     print("\n[1/2] Setting up Kaggle authentication...")
     if not setup_kaggle_auth():
         print("Failed to set up Kaggle authentication. Exiting.")
@@ -30,10 +31,10 @@ def main():
     
     # Load the data from the specified path
     data = load_data('bin\data\stock_data.csv')  
-    #plot_historical_performance_per_stock(data)  # Plot the historical performance
-    data = prepare_data(data)
+    #plot_historical_performance_per_stock(data)  
+   # data = prepare_data(data)
     # Pass the loaded data to the LSTM training function
-    train_lstm_main(data)
+    #train_lstm_main(data)
 
     print("\n=== Pipeline completed successfully ===")
 

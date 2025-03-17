@@ -3,9 +3,9 @@ config.json
 
 # Downloaded data
 data/
-src/data/data.csv
-src/data/stock_prices.csv
-src/data/world-stock-prices-daily-updating/
+bin/data/stock_data.csv
+bin/data/stock_prices.csv
+bin/data/figs
 
 # Python
 __pycache__/
