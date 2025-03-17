@@ -2,7 +2,6 @@
 config.json
 
 # Downloaded data
-data/
 bin/data/stock_data.csv
 bin/data/stock_prices.csv
 bin/data/figs
