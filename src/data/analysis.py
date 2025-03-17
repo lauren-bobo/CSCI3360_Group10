@@ -1,4 +1,4 @@
-from src.data.API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
+from API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -70,7 +70,7 @@ def plot_real_industry_stats():
                 'Consumer Staples', 'Energy', 'Materials', 'Utilities', 'Real Estate'],
         'Market Cap': ['$25.67T', '$21.14T', '$15.32T', '$13.66T', '$10.72T', 
                     '$9.33T', '$7.90T', '$6.75T', '$6.11T', '$3.75T', '$3.29T'],
-        'Market Share(\%)': [21, 17, 12, 11, 9, 8, 6, 5, 5, 3, 3],
+        'Market Share': [21, 17, 12, 11, 9, 8, 6, 5, 5, 3, 3],
         'Number of Firms': [6198, 5244, 8780, 6251, 4504, 
                             2226, 3155, 1416, 6462, 910, 2664]
     }

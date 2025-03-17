@@ -31,7 +31,7 @@ def main():
     
     # Load the data from the specified path
     data = load_data('bin\data\stock_data.csv')  
-    #plot_historical_performance_per_stock(data)  
+    chart_all(data)  
    # data = prepare_data(data)
     # Pass the loaded data to the LSTM training function
     #train_lstm_main(data)
