@@ -52,6 +52,7 @@ def chart_volatility_per_stock(data):
 
     # Set plot title and labels
     ax.set_title('Volatility of Each Stock', fontsize=16)
+    ax.legend(loc='upper left', fontsize=10, frameon=True)
     ax.set_xlabel('Stock', fontsize=14)
     ax.set_ylabel('Volatility', fontsize=14)
     ax.tick_params(axis='x', labelsize=12)
@@ -99,20 +100,44 @@ def plot_real_industry_stats():
     plt.close()
 
 def plot_stock_industries(data):
-    """Plot the distribution of stocks by industry."""
-    industry_counts = data['Industry_Tag'].value_counts()
-    
-    # Create a pie chart
-    fig, ax = plt.subplots()
-    wedges, texts, autotexts = ax.pie(industry_counts, autopct='%1.1f%%', startangle=90)
+    """Plot a detailed, labeled bar chart of stock distribution by industry."""
+    industry_counts = data['Industry_Tag'].value_counts().sort_values(ascending=True)
+    total = industry_counts.sum()
 
-    # Beautify the plot
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    plt.setp(autotexts, size=10, weight="bold", color="white")  # Style the autotexts
+    # Calculate percentages
+    industry_percentages = (industry_counts / total * 100).round(2)
 
-    # Add a title
-    plt.title('Stock Industry Distribution')
-    plt.show()
+    # Set seaborn style
+    sns.set(style="whitegrid")
+    fig, ax = plt.subplots(figsize=(14, max(6, len(industry_counts) * 0.4)))
+
+    # Create horizontal bar plot
+    bars = sns.barplot(
+        x=industry_counts.values,
+        y=industry_counts.index,
+        orient='h',
+        palette='viridis'
+    )
+
+    # Annotate counts and percentages
+    for i, (count, pct) in enumerate(zip(industry_counts.values, industry_percentages.values)):
+        ax.text(count + total * 0.01, i, f'{count} ({pct}%)', va='center', fontsize=9)
+
+    # Set labels and title
+    ax.set_title('Stock Distribution by Industry', fontsize=16, pad=15)
+    ax.set_xlabel('Number of Stocks', fontsize=12)
+    ax.set_ylabel('Industry Tag', fontsize=12)
+
+    # Clean up axis
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x)}'))
+    ax.tick_params(axis='y', labelsize=10)
+    ax.tick_params(axis='x', labelsize=10)
+
+    # Tight layout and save
+    plt.tight_layout()
+    plt.savefig(output_dir / 'stock_industry_distribution.png')
+    plt.close()
+    print(f"✓ Saved detailed industry distribution chart to {output_dir / 'stock_industry_distribution.png'}")
 def chart_all(data):
     """Plot all charts for the analysis."""
     print("Plotting all charts...")

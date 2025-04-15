@@ -5,9 +5,25 @@ import pandas as pd
 import json
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from datetime import timedelta
 """NOT YET WORKING, PURELY TO FORMAT INPUT DATA FOR LSTM""" 
 # Configuration file in project root
 CONFIG_FILE = "config.json"
+
+def save_last_n_days_to_csv(file_path, n):
+    """Load CSV, filter last n days, and overwrite the file."""
+    data = pd.read_csv(file_path)
+    data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)
+
+    # Filter the last n days
+    max_date = data['Date'].max()
+    cutoff_date = max_date - timedelta(days=n)
+    filtered_data = data[data['Date'] >= cutoff_date]
+
+    # Overwrite the file
+    filtered_data.to_csv(file_path, index=False)
+    print(f"✓ Overwrote {file_path} with last {n} days of data ({cutoff_date.date()} - {max_date.date()})")
+
 
 def load_config():
     """Load configuration from file or create default"""
@@ -166,14 +182,21 @@ def main():
     
     print("\n[2/2] Downloading and saving dataset...")
     dataset_id = "nelgiriyewithana/world-stock-prices-daily-updating"
-    file_name = "World-Stock-Prices-Dataset.csv"  # Replace with the actual file name
+    file_name = "World-Stock-Prices-Dataset.csv"
     if not download_and_save_dataset(dataset_id, file_name):
         print("Failed to download and save dataset. Exiting.")
         return
+
+    config = load_config()
+    output_path = config['paths']['output_file']
     
-    data = load_data('bin/data/stock_data.csv')
+    save_last_n_days_to_csv(output_path, 180)
+
+    data = load_data(output_path)
                 
     print("\n=== Pipeline completed successfully ===")
+
+
 
 if __name__ == "__main__":
     main() 

@@ -6,6 +6,9 @@ bin/data/stock_data.csv
 bin/data/stock_prices.csv
 bin/data/figs
 
+# models
+models/*.h5
+
 # Python
 __pycache__/
 *.py[cod]
