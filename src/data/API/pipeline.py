@@ -121,18 +121,33 @@ def download_and_save_dataset(dataset_id, file_name):
         return False
 
 def load_data(file):
-    data = pd.read_csv(file)
-    data = pd.DataFrame(data)
-    data['Date'] = pd.to_datetime(data['Date'], utc=True)
-
-    # Print the columns to check for 'Stock'
-    print("Data loaded:", data.head())  # Print the first few rows of the data
-    print("Columns in DataFrame:", data.columns)  # Print the columns to check for 'Stock'
-
-    # Strip whitespace from column names
-    data.columns = data.columns.str.strip()
-
-
+    """Load data from CSV file and ensure proper date handling."""
+    # Read CSV with specific column types
+    data = pd.read_csv(file, dtype={
+        'Date': str,
+        'Open': float,
+        'High': float,
+        'Low': float,
+        'Close': float,
+        'Volume': float,
+        'Brand_Name': str,
+        'Ticker': str,
+        'Industry_Tag': str,
+        'Country': str,
+        'Dividends': float,
+        'Stock Splits': float,
+        'Capital Gains': float
+    })
+    
+    # Convert 'Date' to datetime while preserving timezone information
+    data['Date'] = pd.to_datetime(data['Date'])
+    
+    # Print data info for debugging
+    print("\nDataset Info:")
+    print(f"Total rows: {len(data)}")
+    print(f"Unique stocks: {data['Ticker'].nunique()}")
+    print(f"Date range: {data['Date'].min()} to {data['Date'].max()}")
+    
     return data
 
 def replace_Industry_Tag_with_sector(data):
@@ -170,6 +185,112 @@ def prepare_data(data):
             y.append(scaled_data[i, 0])       # Current day
 
     return np.array(X), np.array(y), scalers
+def drop_data_for_lstm(data, days):
+    """Drop data for LSTM model based on the specified number of days."""
+    if days not in [30, 90]:
+        raise ValueError("Days must be either 30 or 90.")
+    
+    # Ensure the date index is timezone-aware and in UTC
+    if data.index.tz is None:
+        data.index = data.index.tz_localize('UTC')
+    elif data.index.tz.zone != 'UTC':
+        data.index = data.index.tz_convert('UTC')
+    
+    # Calculate the cutoff date
+    current_date = pd.Timestamp.now(tz='UTC')
+    cutoff_date = current_date - pd.Timedelta(days=days)
+    
+    # Drop rows where the date is less than the cutoff date
+    filtered_data = data[data.index >= cutoff_date]
+    
+    print(f"Data filtered to include only the last {days} days")
+    print(f"Date range: {filtered_data.index.min()} to {filtered_data.index.max()}")
+    return filtered_data
+
+def validate_dates(data):
+    """Validate that dates are properly formatted and in chronological order."""
+    # Ensure timezone awareness
+    if data.index.tz is None:
+        print("Warning: Dates were timezone-naive. Converting to UTC...")
+        data.index = data.index.tz_localize('UTC')
+    
+    # Check for missing dates
+    if data.index.isnull().any():
+        print("Warning: Found missing dates in the data")
+        data = data.dropna(subset=[data.index.name])
+    
+    # Check for duplicate dates
+    if data.index.duplicated().any():
+        print("Warning: Found duplicate dates in the data")
+        data = data[~data.index.duplicated(keep='first')]
+    
+    # Ensure dates are sorted
+    if not data.index.is_monotonic_increasing:
+        print("Warning: Dates were not in chronological order. Sorting data...")
+        data.sort_index(inplace=True)
+    
+    return data
+
+def validate_stock_data(data):
+    """Validate the stock data format and content."""
+    required_columns = [
+        'Date', 'Open', 'High', 'Low', 'Close', 'Volume',
+        'Brand_Name', 'Ticker', 'Industry_Tag', 'Country'
+    ]
+    
+    # Check for required columns
+    missing_cols = [col for col in required_columns if col not in data.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+    
+    # Check for null values in critical columns
+    critical_cols = ['Date', 'Close', 'Ticker']
+    null_counts = data[critical_cols].isnull().sum()
+    if null_counts.any():
+        print("Warning: Null values found in critical columns:")
+        print(null_counts[null_counts > 0])
+    
+    # Check for invalid prices
+    if (data['Close'] <= 0).any():
+        print("Warning: Invalid (zero or negative) closing prices found")
+    
+    return data
+
+def get_stock_summary(data):
+    """Generate a summary of the stock data."""
+    summary = {
+        'total_stocks': data['Ticker'].nunique(),
+        'total_records': len(data),
+        'industries': data['Industry_Tag'].unique().tolist(),
+        'countries': data['Country'].unique().tolist(),
+        'date_range': (data['Date'].min(), data['Date'].max())
+    }
+    
+    print("\nStock Data Summary:")
+    print(f"Total stocks: {summary['total_stocks']}")
+    print(f"Total records: {summary['total_records']}")
+    print(f"Industries: {len(summary['industries'])}")
+    print(f"Countries: {len(summary['countries'])}")
+    print(f"Date range: {summary['date_range'][0]} to {summary['date_range'][1]}")
+    
+    return summary
+
+def process_stock_data(file_path):
+    """Process the stock data file and return validated data."""
+    # Load the data
+    data = load_data(file_path)
+    
+    # Validate the data
+    data = validate_stock_data(data)
+    
+    # Get summary
+    summary = get_stock_summary(data)
+    
+    # Convert dates to UTC and set as index
+    data['Date'] = pd.to_datetime(data['Date']).dt.tz_convert('UTC')
+    data.set_index('Date', inplace=True)
+    
+    return data, summary
 
 def main():
     """Main function to run the data pipeline."""
