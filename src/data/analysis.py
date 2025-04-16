@@ -145,6 +145,35 @@ def chart_all(data):
     chart_volatility_per_stock(data)
     plot_stock_industries(data)
     plot_real_industry_stats()
+
+def plot_bollinger_bands(data):
+    print("Plotting Bollinger Bands per stock...")
+
+    grouped = data.groupby('Ticker')
+    for ticker, group in grouped:
+        group = group.sort_values('Date')
+        group['MA20'] = group['Close'].rolling(window=20).mean()
+        group['Upper'] = group['MA20'] + 2 * group['Close'].rolling(window=20).std()
+        group['Lower'] = group['MA20'] - 2 * group['Close'].rolling(window=20).std()
+
+        plt.figure(figsize=(14, 6))
+        plt.plot(group['Date'], group['Close'], label='Close Price')
+        plt.plot(group['Date'], group['MA20'], label='20-day MA', linestyle='--')
+        plt.plot(group['Date'], group['Upper'], label='Upper Band', linestyle='-.')
+        plt.plot(group['Date'], group['Lower'], label='Lower Band', linestyle='-.')
+        plt.fill_between(group['Date'], group['Upper'], group['Lower'], color='gray', alpha=0.1)
+
+        plt.title(f'Bollinger Bands - {ticker}')
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        save_path = output_dir / f'bollinger_bands_{ticker}.png'
+        plt.savefig(save_path)
+        plt.close()
+        print(f"Saved Bollinger Bands chart for {ticker} to {save_path}")
 def main():
     """Main function to run the analysis."""
     print("=== Stock Market Data Analysis ===")
