@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).parent))
 
 from src.data.API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
 from src.data.analysis import chart_all
-from src.model.train_lstm import main as train_lstm_main  # Import the main function from train_lstm to run model training
+from src.model.train_lstm import run as train_lstm_main  # Import the main function from train_lstm to run model training
 
 def main():
     """Main function to run the data pipeline."""
