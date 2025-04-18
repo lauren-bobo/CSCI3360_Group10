@@ -10,13 +10,12 @@ sys.path.append(str(Path(__file__).parent))
 
 from src.data.API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
 from src.data.analysis import chart_all
-from src.model.train_lstm import main as train_lstm_main  # Import the main function from train_lstm to run model training
+from src.model.train_lstm import main as train_lstm_main, run  # Import both main and run functions
 
 def main():
     """Main function to run the data pipeline."""
     
     print("Welcome To The stock prediction model:")
-    print
     print("\n[1/2] Setting up Kaggle authentication...")
     if not setup_kaggle_auth():
         print("Failed to set up Kaggle authentication. Exiting.")
@@ -32,9 +31,10 @@ def main():
     # Load the data from the specified path
     data = load_data('bin\data\stock_data.csv')  
     chart_all(data)  
-   # data = prepare_data(data)
-    # Pass the loaded data to the LSTM training function
-    #train_lstm_main(data)
+    
+    print("\n[3/3] Training LSTM models...")
+    # Run the LSTM training
+    run()  # This will train models for all stocks and save them
 
     print("\n=== Pipeline completed successfully ===")
 
