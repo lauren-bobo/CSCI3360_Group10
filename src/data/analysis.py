@@ -1,11 +1,13 @@
-from API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
+import sys
+from pathlib import Path
+from src.data.API.pipeline import setup_kaggle_auth, download_and_save_dataset, load_config, load_data, prepare_data
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
 import os
-
+   
 output_dir = Path("bin/data/figs")
 output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -145,6 +147,35 @@ def chart_all(data):
     chart_volatility_per_stock(data)
     plot_stock_industries(data)
     plot_real_industry_stats()
+    plot_bollinger_bands(data)
+
+def plot_bollinger_bands(data):
+    print("Plotting Bollinger Bands per stock...")
+
+    grouped = data.groupby('Ticker')
+    for ticker, group in grouped:
+        group = group.sort_values('Date')
+        group['MA20'] = group['Close'].rolling(window=20).mean() #20 day moving average
+        group['Upper'] = group['MA20'] + 2 * group['Close'].rolling(window=20).std()
+        group['Lower'] = group['MA20'] - 2 * group['Close'].rolling(window=20).std()
+
+        plt.figure(figsize=(14, 6))
+        plt.plot(group['Date'], group['Close'], label='Close Price')
+        plt.plot(group['Date'], group['MA20'], label='20-day MA', linestyle='--')
+        plt.plot(group['Date'], group['Upper'], label='Upper Band', linestyle='-.')
+        plt.plot(group['Date'], group['Lower'], label='Lower Band', linestyle='-.')
+        plt.fill_between(group['Date'], group['Upper'], group['Lower'], color='gray', alpha=0.1)
+
+        plt.title(f'Bollinger Bands - {ticker}')
+        plt.xlabel('Date')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        save_path = output_dir / f'bollinger_bands_{ticker}.png'
+        plt.savefig(save_path)
+        plt.close()
 def main():
     """Main function to run the analysis."""
     print("=== Stock Market Data Analysis ===")
