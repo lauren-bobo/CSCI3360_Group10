@@ -6,6 +6,8 @@ bin/data/stock_data.csv
 bin/data/stock_prices.csv
 bin/data/figs
 data/API/bin/data
+results
+src\model\lstm_model.h5
 # models
 models/*.h5
 
