@@ -5,7 +5,7 @@ config.json
 bin/data/stock_data.csv
 bin/data/stock_prices.csv
 bin/data/figs
-
+data/API/bin/data
 # models
 models/*.h5
 
