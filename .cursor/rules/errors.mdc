@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+fix the cause of errors, not the symptom 
+
+use machine learning best practices for all models written
+
+ensure there is no data leakage in code 
+
+
+write better code 

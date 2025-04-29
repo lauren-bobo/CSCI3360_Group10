@@ -14,13 +14,15 @@ def build_model():
     model.add(LSTM(units=50, return_sequences=False))
     model.add(Dropout(0.2))
     model.add(Dense(units=1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='huber')
     return model
 
 def prepare_for_model(data):
+    # Create and fit scaler on all data first
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(data[['Close']].values)
 
+    # Create sequences first
     X, y = [], []
     for i in range(60, len(scaled_data)):
         X.append(scaled_data[i-60:i, 0])
@@ -28,8 +30,12 @@ def prepare_for_model(data):
     X, y = np.array(X), np.array(y)
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
+    # Split the sequences into train and test PREVENT DATA LEAKAGE
     split_index = int(0.8 * len(X))
-    return X[:split_index], X[split_index:], y[:split_index], y[split_index:], scaler
+    X_train, X_test = X[:split_index], X[split_index:]
+    y_train, y_test = y[:split_index], y[split_index:]
+
+    return X_train, X_test, y_train, y_test, scaler
 
 def train_single_stock(stock_data, ticker):
     try:

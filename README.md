@@ -6,15 +6,15 @@ Description: This repository contains a means to connecting
 **requires** 
 1.Kaggle username 
 2. Kagglehub API Token (Settings> API:Create New Token, then locate the token number in your json file):
-
 # Explanation: 
+
 ## Authentication
 1. On first launch, the console will prompt Clone this repository
 2. Install required packages:
    ```
-   pip install kagglehub pandas seaborn tensorflow
+   pip install -r requirements.tx
    ```
-   you may have to do several updates
+  
 
 #Info 
 Due to storage limits and the need for API authentication, several files will not be shared on this repository,
