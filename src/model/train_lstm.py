@@ -18,15 +18,11 @@ def build_model():
     return model
 
 def prepare_for_model(data):
-    # Create and fit scaler on all data first
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(data[['Close']].values)
-
     # Create sequences first
     X, y = [], []
-    for i in range(60, len(scaled_data)):
-        X.append(scaled_data[i-60:i, 0])
-        y.append(scaled_data[i, 0])
+    for i in range(60, len(data)):
+        X.append(data[['Close']].values[i-60:i, 0])
+        y.append(data[['Close']].values[i, 0])
     X, y = np.array(X), np.array(y)
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
@@ -34,6 +30,13 @@ def prepare_for_model(data):
     split_index = int(0.8 * len(X))
     X_train, X_test = X[:split_index], X[split_index:]
     y_train, y_test = y[:split_index], y[split_index:]
+
+    # Create and fit scaler on training data only
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    X_train = scaler.fit_transform(X_train.reshape(-1, 1)).reshape(X_train.shape)
+    X_test = scaler.transform(X_test.reshape(-1, 1)).reshape(X_test.shape)
+    y_train = scaler.fit_transform(y_train.reshape(-1, 1))
+    y_test = scaler.transform(y_test.reshape(-1, 1))
 
     return X_train, X_test, y_train, y_test, scaler
 
